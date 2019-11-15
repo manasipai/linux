@@ -24,6 +24,14 @@
 #include "trace.h"
 #include "pmu.h"
 
+//long exit_counter = 0;
+atomic_long_t exit_counter = ATOMIC_INIT(0);
+EXPORT_SYMBOL(exit_counter);
+
+atomic_t et_counter[] = ATOMIC_INIT(0);
+//int et_counter[67] = {};
+EXPORT_SYMBOL(et_counter);
+
 static u32 xstate_required_size(u64 xstate_bv, bool compacted)
 {
 	int feature_bit = 0;
@@ -1041,12 +1049,51 @@ int kvm_emulate_cpuid(struct kvm_vcpu *vcpu)
 {
 	u32 eax, ebx, ecx, edx;
 
+
 	if (cpuid_fault_enabled(vcpu) && !kvm_require_cpl(vcpu, 0))
 		return 1;
 
 	eax = kvm_rax_read(vcpu);
 	ecx = kvm_rcx_read(vcpu);
-	kvm_cpuid(vcpu, &eax, &ebx, &ecx, &edx, true);
+	int i;
+	
+	if (eax == 0x4FFFFFFF)
+	{	
+		//eax = exit_counter;
+		eax = atomic_long_read(&exit_counter);
+	}
+	else if(eax == 0x4FFFFFFD)
+	{
+		for (i=0; i<=66; i++)	
+		{	
+			if(ecx == i)
+			{
+				if(ecx == 35 || ecx == 38 || ecx == 42 || ecx == 65 || ecx == 66)
+				{
+					eax = 0;
+					ebx = 0;
+					ecx = 0;
+					edx = 0xFFFFFFFF;
+				}
+				else if(ecx == 3 || ecx == 4 || ecx == 5 || ecx == 6 || ecx == 11|| ecx == 16 || ecx == 17 || ecx == 33 || ecx == 34)
+				{
+					eax = 0;
+					ebx = 0;
+					ecx = 0;
+					edx = 0;
+				}
+				else	
+				{		
+					//eax = et_counter[i];	
+					eax = atomic_read(&et_counter[i]);
+				}					
+			}
+		}
+	}
+	else
+	{
+		kvm_cpuid(vcpu, &eax, &ebx, &ecx, &edx, true);
+	}
 	kvm_rax_write(vcpu, eax);
 	kvm_rbx_write(vcpu, ebx);
 	kvm_rcx_write(vcpu, ecx);
