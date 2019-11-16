@@ -28,7 +28,7 @@
 atomic_long_t exit_counter = ATOMIC_INIT(0);
 EXPORT_SYMBOL(exit_counter);
 
-atomic_t et_counter[] = ATOMIC_INIT(0);
+atomic_t et_counter[67] = ATOMIC_INIT(0);
 //int et_counter[67] = {};
 EXPORT_SYMBOL(et_counter);
 
@@ -1092,8 +1092,11 @@ int kvm_emulate_cpuid(struct kvm_vcpu *vcpu)
 	}
 	else
 	{
-		kvm_cpuid(vcpu, &eax, &ebx, &ecx, &edx, true);
+	kvm_cpuid(vcpu, &eax, &ebx, &ecx, &edx, true);
 	}
+	
+	
+	
 	kvm_rax_write(vcpu, eax);
 	kvm_rbx_write(vcpu, ebx);
 	kvm_rcx_write(vcpu, ecx);
