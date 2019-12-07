@@ -1066,7 +1066,7 @@ int kvm_emulate_cpuid(struct kvm_vcpu *vcpu)
 	{	
 		//eax = exit_counter;
 		eax = atomic_long_read(&exit_counter);
-		printk(KERN_INFO "exit counter:%u\n",eax);
+		
 	}
 	else if(eax == 0x4FFFFFFE)
 	{
@@ -1100,6 +1100,7 @@ int kvm_emulate_cpuid(struct kvm_vcpu *vcpu)
 				else	
 				{	
 					eax = atomic_read(&et_counter[i]);
+					printk(KERN_INFO "exit counter:%u\n",eax);
 				}					
 			}
 		}
